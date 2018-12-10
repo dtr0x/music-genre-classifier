@@ -52,6 +52,9 @@ trueGenres <- discogsTruths[discogsTruths$rid %in% recordingIDs, ]
 musicData <- lapply(jsonFiles, parseMusicJSON)
 colNames <- names(unlist(musicData[[1]]))
 
-designMat <- matrix(unlist(musicData), 100, 2675, byrow = TRUE, dimnames = list(NULL, colNames))
+numRows <- length(jsonFiles)
+numCols <- length(colNames)
+
+designMat <- matrix(unlist(musicData), numRows, numCols, byrow = TRUE, dimnames = list(NULL, colNames))
 
 
