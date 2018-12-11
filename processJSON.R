@@ -4,7 +4,8 @@ TRAIN_DIR <- "discogsTraintest"
 GROUND_TRUTHS <- "discogsTruths.tsv"
 jsonFiles <- list.files(TRAIN_DIR)
 
-#designMat <- prepareData(jsonFiles)
+xMat <- prepareData(jsonFiles)
+yMat <- encodeGenres(jsonFiles)
 
 parseMusicJSON <- function(jsonFile) {
 	path <- paste(TRAIN_DIR, jsonFile, sep="/")
@@ -51,7 +52,7 @@ encodeTonal <- function(musicJSON) {
 }
 
 encodeGenres <- function(jsonFiles) {
-	discogsTruths <- read.delim("discogsTruths.tsv")
+	discogsTruths <- read.delim(GROUND_TRUTHS)
 	recordingIDs <- sapply(jsonFiles, USE.NAMES = FALSE, function(s) strsplit(s, "[.]")[[1]][1])
 	trueGenres <- discogsTruths[discogsTruths$rid %in% recordingIDs, 2]
 	classes <- levels(trueGenres)
@@ -75,4 +76,3 @@ prepareData <-function(jsonFiles) {
 	
 	matrix(unlist(musicData), numRows, numCols, byrow = TRUE, dimnames = list(NULL, colNames))
 }
-
