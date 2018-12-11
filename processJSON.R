@@ -1,6 +1,10 @@
 library(jsonlite)
 
 TRAIN_DIR <- "discogsTraintest"
+GROUND_TRUTHS <- "discogsTruths.tsv"
+jsonFiles <- list.files(TRAIN_DIR)
+
+#designMat <- prepareData(jsonFiles)
 
 parseMusicJSON <- function(jsonFile) {
 	path <- paste(TRAIN_DIR, jsonFile, sep="/")
@@ -11,12 +15,12 @@ parseMusicJSON <- function(jsonFile) {
 	# remove beats_position feature, length differs between recordings and is redundant with bpm / beats_count
 	musicJSON$rhythm$beats_position <- NULL 
 
-	musicJSON <- oneHotEncodeTonal(musicJSON)
+	musicJSON <- encodeTonal(musicJSON)
 
 	musicJSON
 }
 
-oneHotEncodeTonal <- function(musicJSON) {
+encodeTonal <- function(musicJSON) {
 	keys <- c("A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#")
 
 	# encode key_key
@@ -46,15 +50,29 @@ oneHotEncodeTonal <- function(musicJSON) {
 	musicJSON
 }
 
+encodeGenres <- function(jsonFiles) {
+	discogsTruths <- read.delim("discogsTruths.tsv")
+	recordingIDs <- sapply(jsonFiles, USE.NAMES = FALSE, function(s) strsplit(s, "[.]")[[1]][1])
+	trueGenres <- discogsTruths[discogsTruths$rid %in% recordingIDs, 2]
+	classes <- levels(trueGenres)
 
-discogsTruths <- read.delim("discogsTruths.tsv")
-jsonFiles <- list.files(TRAIN_DIR)
-recordingIDs <- sapply(jsonFiles, USE.NAMES = FALSE, function(s) strsplit(s, "[.]")[[1]][1])
-trueGenres <- discogsTruths[discogsTruths$rid %in% recordingIDs, ]
-musicData <- lapply(jsonFiles, parseMusicJSON)
-colNames <- names(unlist(musicData[[1]]))
+	numRows <- length(trueGenres)
+	numCols <- length(classes)
+	yMat <- matrix(rep(0, numRows * numCols), numRows, numCols, dimnames = list(NULL, classes))
 
-numRows <- length(jsonFiles)
-numCols <- length(colNames)
+	for (i in 1:numRows) {
+		yMat[i, trueGenres[i]] = 1
+	}
 
-designMat <- matrix(unlist(musicData), numRows, numCols, byrow = TRUE, dimnames = list(NULL, colNames))
+	yMat
+}
+
+prepareData <-function(jsonFiles) {
+	musicData <- lapply(jsonFiles, parseMusicJSON)
+	colNames <- names(unlist(musicData[[1]]))
+	numRows <- length(jsonFiles)
+	numCols <- length(colNames)
+	
+	matrix(unlist(musicData), numRows, numCols, byrow = TRUE, dimnames = list(NULL, colNames))
+}
+
