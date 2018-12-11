@@ -2,10 +2,6 @@ library(jsonlite)
 
 TRAIN_DIR <- "discogsTraintest"
 GROUND_TRUTHS <- "discogsTruths.tsv"
-jsonFiles <- list.files(TRAIN_DIR)
-
-xMat <- prepareData(jsonFiles)
-yMat <- encodeGenres(jsonFiles)
 
 parseMusicJSON <- function(jsonFile) {
 	path <- paste(TRAIN_DIR, jsonFile, sep="/")
@@ -76,3 +72,9 @@ prepareData <-function(jsonFiles) {
 	
 	matrix(unlist(musicData), numRows, numCols, byrow = TRUE, dimnames = list(NULL, colNames))
 }
+
+
+jsonFiles <- list.files(TRAIN_DIR)
+
+xMat <- prepareData(jsonFiles)
+yMat <- encodeGenres(jsonFiles)
